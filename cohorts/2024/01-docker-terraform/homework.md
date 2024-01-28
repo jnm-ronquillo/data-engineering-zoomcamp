@@ -52,6 +52,47 @@ You will also need the dataset with zones:
 
 Download this data and put it into Postgres (with jupyter notebooks or with a pipeline)
 
+### Using a Pipeline
+
+Build the image
+
+```bash
+docker build -t taxi_ingest:v001 .
+```
+
+Run the script with Docker
+
+```bash
+URL="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/green/green_tripdata_2019-09.csv.gz"
+
+docker run -it --rm \
+  --network=pg-network \
+  taxi_ingest:v001 \
+    --user=root \
+    --password=root \
+    --host=pgdatabase \
+    --port=5432 \
+    --db=ny_taxi \
+    --table_name=green_taxi_trips \
+    --url=${URL}
+```
+
+```bash
+URL="https://s3.amazonaws.com/nyc-tlc/misc/taxi+_zone_lookup.csv"
+
+docker run -it --rm \
+  --network=pg-network \
+  taxi_ingest:v001 \
+    --user=root \
+    --password=root \
+    --host=pgdatabase \
+    --port=5432 \
+    --db=ny_taxi \
+    --table_name=zones \
+    --url=${URL}
+```
+
+
 
 ## Question 3. Count records 
 
@@ -66,6 +107,16 @@ Remember that `lpep_pickup_datetime` and `lpep_dropoff_datetime` columns are in 
 - 15859
 - 89009
 
+### Answer
+
+```bash
+select count(1) from
+public.green_taxi_trips
+where 
+lpep_pickup_datetime >= '2019-09-18' and
+lpep_dropoff_datetime::DATE <= '2019-09-18'
+```
+
 ## Question 4. Largest trip for each day
 
 Which was the pick up day with the largest trip distance
@@ -76,6 +127,18 @@ Use the pick up time for your calculations.
 - 2019-09-26
 - 2019-09-21
 
+### Answer
+
+```bash
+select 
+lpep_pickup_datetime,
+lpep_dropoff_datetime,
+(lpep_dropoff_datetime - lpep_pickup_datetime) AS time_distance
+from
+public.green_taxi_trips
+order by time_distance DESC
+limit 1
+```
 
 ## Question 5. Three biggest pick up Boroughs
 
@@ -88,6 +151,19 @@ Which were the 3 pick up Boroughs that had a sum of total_amount superior to 500
 - "Bronx" "Manhattan" "Queens" 
 - "Brooklyn" "Queens" "Staten Island"
 
+### Answer
+
+```bash
+select 
+zpu."Borough", 
+sum(gt.total_amount) as sum_total_amount
+from
+public.green_taxi_trips gt 
+inner join public.zones zpu on gt."PULocationID"=zpu."LocationID"
+where gt.lpep_pickup_datetime::DATE = '2019-09-18'
+group by zpu."Borough"
+having sum(gt.total_amount) > 50000
+```
 
 ## Question 6. Largest tip
 
@@ -101,7 +177,23 @@ Note: it's not a typo, it's `tip` , not `trip`
 - JFK Airport
 - Long Island City/Queens Plaza
 
+### Answer
 
+```bash
+select 
+zpu."Zone" as picku_zone, 
+zdo."Zone" as dropout_zone,
+gt.tip_amount
+from
+public.green_taxi_trips gt 
+inner join public.zones zpu on gt."PULocationID"=zpu."LocationID"
+inner join public.zones zdo on gt."DOLocationID"=zdo."LocationID"
+where DATE_PART('year', gt.lpep_pickup_datetime ) = 2019
+  and DATE_PART('month', gt.lpep_pickup_datetime ) = 9
+  and zpu."Zone" = 'Astoria'
+order by gt.tip_amount DESC
+limit 1
+```
 
 ## Terraform
 
@@ -124,6 +216,75 @@ terraform apply
 
 Paste the output of this command into the homework submission form.
 
+### Output
+```bash
+Terraform used the selected providers to generate the following execution plan. Resource
+actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # google_bigquery_dataset.demo_dataset will be created
+  + resource "google_bigquery_dataset" "demo_dataset" {
+      + creation_time              = (known after apply)
+      + dataset_id                 = "demo_dataset"
+      + default_collation          = (known after apply)
+      + delete_contents_on_destroy = false
+      + effective_labels           = (known after apply)
+      + etag                       = (known after apply)
+      + id                         = (known after apply)
+      + is_case_insensitive        = (known after apply)
+      + last_modified_time         = (known after apply)
+      + location                   = "US"
+      + max_time_travel_hours      = (known after apply)
+      + project                    = "skilled-keyword-292704"
+      + self_link                  = (known after apply)
+      + storage_billing_model      = (known after apply)
+      + terraform_labels           = (known after apply)
+    }
+
+  # google_storage_bucket.demo-bucket will be created
+  + resource "google_storage_bucket" "demo-bucket" {
+      + effective_labels            = (known after apply)
+      + force_destroy               = true
+      + id                          = (known after apply)
+      + location                    = "US"
+      + name                        = "skilled-keyword-292704-terra-bucket"
+      + project                     = (known after apply)
+      + public_access_prevention    = (known after apply)
+      + self_link                   = (known after apply)
+      + storage_class               = "STANDARD"
+      + terraform_labels            = (known after apply)
+      + uniform_bucket_level_access = (known after apply)
+      + url                         = (known after apply)
+
+      + lifecycle_rule {
+          + action {
+              + type = "AbortIncompleteMultipartUpload"
+            }
+          + condition {
+              + age                   = 1
+              + matches_prefix        = []
+              + matches_storage_class = []
+              + matches_suffix        = []
+              + with_state            = (known after apply)
+            }
+        }
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  Enter a value: yes
+
+google_bigquery_dataset.demo_dataset: Creating...
+google_storage_bucket.demo-bucket: Creating...
+google_bigquery_dataset.demo_dataset: Creation complete after 2s [id=projects/skilled-keyword-292704/datasets/demo_dataset]
+google_storage_bucket.demo-bucket: Creation complete after 2s [id=skilled-keyword-292704-terra-bucket]
+```
 
 ## Submitting the solutions
 
