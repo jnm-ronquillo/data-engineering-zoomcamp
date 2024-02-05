@@ -45,6 +45,8 @@ def load_data_from_api(*args, **kwargs):
         df = pd.read_csv(url, sep=',', compression='gzip', dtype=taxi_dtypes, parse_dates=parse_dates)
         df_total = pd.concat([df_total,df])
 
+    s_vendor_id = df_total['VendorID'].unique()
+    print("VendorID", s_vendor_id)
     return df_total
 
 
