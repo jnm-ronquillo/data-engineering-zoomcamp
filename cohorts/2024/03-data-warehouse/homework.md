@@ -19,6 +19,10 @@ Question 1: What is count of records for the 2022 Green Taxi Data??
 - 1,936,423
 - 253,647
 
+```bash
+SELECT COUNT(1) FROM skilled-keyword-292704.nytaxi.green_tripdata_non_partitoned;
+```
+
 ## Question 2:
 Write a query to count the distinct number of PULocationIDs for the entire dataset on both the tables.</br> 
 What is the estimated amount of data that will be read when this query is executed on the External Table and the Table?
@@ -28,6 +32,16 @@ What is the estimated amount of data that will be read when this query is execut
 - 0 MB for the External Table and 0MB for the Materialized Table
 - 2.14 MB for the External Table and 0MB for the Materialized Table
 
+```bash
+-- Impact of materialized table
+-- Scanning 0 MB (cached) of data
+SELECT DISTINCT(PULocationID)
+FROM skilled-keyword-292704.nytaxi.external_green_tripdata;
+
+-- Scanning 6.41 MB of data
+SELECT DISTINCT(PULocationID)
+FROM skilled-keyword-292704.nytaxi.green_tripdata_non_partitoned;
+```
 
 ## Question 3:
 How many records have a fare_amount of 0?
@@ -36,12 +50,26 @@ How many records have a fare_amount of 0?
 - 112
 - 1,622
 
+```bash
+--Count number of records with fare_amount 0
+SELECT COUNT(1) FROM skilled-keyword-292704.nytaxi.green_tripdata_non_partitoned
+WHERE fare_amount = 0;
+```
+
 ## Question 4:
 What is the best strategy to make an optimized table in Big Query if your query will always order the results by PUlocationID and filter based on lpep_pickup_datetime? (Create a new table with this strategy)
 - Cluster on lpep_pickup_datetime Partition by PUlocationID
 - Partition by lpep_pickup_datetime  Cluster on PUlocationID
 - Partition by lpep_pickup_datetime and Partition by PUlocationID
 - Cluster on by lpep_pickup_datetime and Cluster on PUlocationID
+
+```bash
+-- Create a partitioned and clustered table from external table
+CREATE OR REPLACE TABLE skilled-keyword-292704.nytaxi.green_tripdata_partitoned_clustered
+PARTITION BY DATE(lpep_pickup_datetime)
+CLUSTER BY PUlocationID AS
+SELECT * FROM skilled-keyword-292704.nytaxi.external_green_tripdata;
+```
 
 ## Question 5:
 Write a query to retrieve the distinct PULocationID between lpep_pickup_datetime
@@ -56,6 +84,18 @@ Choose the answer which most closely matches.</br>
 - 5.63 MB for non-partitioned table and 0 MB for the partitioned table
 - 10.31 MB for non-partitioned table and 10.31 MB for the partitioned table
 
+```bash
+-- Impact of partitioned table
+-- Scanning 12.82 MB of data
+SELECT DISTINCT(PULocationID)
+FROM skilled-keyword-292704.nytaxi.green_tripdata_non_partitoned
+WHERE DATE(lpep_pickup_datetime) BETWEEN '2022-06-01' AND '2022-06-30';
+
+-- Scanning 1.12 MB of data
+SELECT DISTINCT(PULocationID)
+FROM skilled-keyword-292704.nytaxi.green_tripdata_partitoned_clustered
+WHERE DATE(lpep_pickup_datetime) BETWEEN '2022-06-01' AND '2022-06-30';
+```
 
 ## Question 6: 
 Where is the data stored in the External Table you created?
