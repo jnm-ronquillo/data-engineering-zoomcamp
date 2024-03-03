@@ -54,14 +54,15 @@ python 06_spark_sql.py \
 
 Use `spark-submit` for running the script on the cluster
 
+https://askubuntu.com/a/335212 about zsh and wildcard *
 ```bash
 URL="spark://de-zoomcamp.europe-west1-b.c.de-zoomcamp-nytaxi.internal:7077"
 
 spark-submit \
     --master="${URL}" \
     06_spark_sql.py \
-        --input_green=data/pq/green/2021/*/ \
-        --input_yellow=data/pq/yellow/2021/*/ \
+        --input_green='data/pq/green/2021/*/' \
+        --input_yellow='data/pq/yellow/2021/*/' \
         --output=data/report-2021
 ```
 
