@@ -41,6 +41,9 @@ Find out what you need to execute based on the `help` output.
 
 What's the version, based on the output of the command you executed? (copy the entire version)
 
+```bash
+v22.3.5 (rev 28b2443)
+```
 
 ## Question 2. Creating a topic
 
@@ -53,6 +56,10 @@ Read the output of `help` and based on it, create a topic with name `test-topic`
 
 What's the output of the command for creating a topic? Include the entire output in your answer.
 
+```bash
+TOPIC       STATUS
+test-topic  OK
+```
 
 ## Question 3. Connecting to the Kafka server
 
@@ -93,6 +100,9 @@ producer.bootstrap_connected()
 Provided that you can connect to the server, what's the output
 of the last command?
 
+```bash
+True
+```
 
 ## Question 4. Sending data to the stream
 
@@ -123,6 +133,10 @@ How much time did it take? Where did it spend most of the time?
 
 (Don't remove `time.sleep` when answering this question)
 
+```bash
+sending took 0.54 seconds
+flushing took 0.00 seconds
+```
 
 ## Reading data with `rpk`
 
@@ -172,6 +186,11 @@ to `iterrows`
 * How much time in seconds did it take? (You can round it to a whole number)
 * Make sure you don't include sleeps in your code
 
+```bash
+sending took 26 seconds (pandas)
+sending took 32.97 seconds (pyspark-pandas)
+sending took 33.91 seconds (pyspark-pandas)
+```
 
 ## Creating the PySpark consumer
 
@@ -272,6 +291,9 @@ green_stream = green_stream \
 
 How does the record look after parsing? Copy the output. 
 
+```bash
+Row(lpep_pickup_datetime='2019-10-01 00:26:02', lpep_dropoff_datetime='2019-10-01 00:39:58', PULocationID=112, DOLocationID=196, passenger_count=1.0, trip_distance=5.88, tip_amount=0.0)
+```
 
 ### Question 7: Most popular destination
 
@@ -305,6 +327,9 @@ query.awaitTermination()
 
 Write the most popular destination, your answer should be *either* the zone ID or the zone name of this destination. (You will need to re-send the data for this to work)
 
+```bash
+74          |East Harlem North       |17741|
+```
 
 ## Submitting the solutions
 
